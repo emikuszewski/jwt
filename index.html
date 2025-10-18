@@ -11,6 +11,11 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         :root {
             --neon-cyan: #00f3ff;
             --neon-pink: #ff006e;
@@ -33,12 +38,16 @@
                 radial-gradient(at 100% 0%, rgba(0, 243, 255, 0.1) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(255, 0, 110, 0.1) 0px, transparent 50%);
             background-attachment: fixed;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
+            box-sizing: border-box;
         }
 
         header {
@@ -73,9 +82,11 @@
             padding: 1.5rem;
             margin: 3rem auto;
             max-width: 900px;
+            width: 100%;
             text-align: center;
             backdrop-filter: blur(10px);
             box-shadow: 0 0 30px rgba(255, 0, 110, 0.2);
+            box-sizing: border-box;
         }
 
         .alert-banner::before {
@@ -88,16 +99,19 @@
             display: grid;
             gap: 2rem;
             padding-bottom: 4rem;
+            width: 100%;
         }
 
         .section-card {
             background: var(--card-bg);
             border-radius: 20px;
-            padding: 3rem;
+            padding: 2rem;
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .section-card:hover {
@@ -151,6 +165,8 @@
             margin: 1.5rem 0;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .danger-box {
@@ -160,6 +176,8 @@
             margin: 1.5rem 0;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .success-box {
@@ -169,6 +187,8 @@
             margin: 1.5rem 0;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .warning-box {
@@ -178,6 +198,8 @@
             margin: 1.5rem 0;
             border-radius: 12px;
             backdrop-filter: blur(10px);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .code-block {
@@ -191,20 +213,26 @@
             font-size: 0.95rem;
             color: var(--neon-cyan);
             box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            width: 100%;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin: 1.5rem 0;
+            width: 100%;
         }
 
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin: 1.5rem 0;
+            width: 100%;
         }
 
         .card {
@@ -213,6 +241,8 @@
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .card:hover {
@@ -243,6 +273,8 @@
             border-radius: 16px;
             margin: 2rem 0;
             border: 1px solid rgba(139, 92, 246, 0.3);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .feature-grid h3 {
@@ -252,6 +284,7 @@
         ul {
             list-style: none;
             padding: 0;
+            width: 100%;
         }
 
         ul li {
@@ -297,6 +330,8 @@
             font-style: italic;
             position: relative;
             padding-left: 3.5rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .analogy::before {
@@ -335,6 +370,7 @@
             color: var(--text-muted);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: 4rem;
+            width: 100%;
         }
 
         .scroll-top {
@@ -367,22 +403,27 @@
 
         .split-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
             margin: 1.5rem 0;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2.5rem;
-            }
-
-            h2 {
                 font-size: 2rem;
             }
 
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
             .section-card {
-                padding: 2rem;
+                padding: 1.5rem;
             }
 
             .split-layout {
@@ -391,6 +432,26 @@
 
             .grid-2, .grid-3 {
                 grid-template-columns: 1fr;
+            }
+
+            .alert-banner {
+                padding: 1rem;
+                font-size: 0.95rem;
+            }
+
+            .analogy {
+                padding-left: 1rem;
+                padding-top: 2.5rem;
+            }
+
+            .analogy::before {
+                left: 1rem;
+                top: 0.75rem;
+            }
+
+            .code-block {
+                font-size: 0.85rem;
+                padding: 1rem;
             }
         }
 
@@ -405,6 +466,8 @@
             border-radius: 12px;
             border-left: 3px solid var(--neon-cyan);
             transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .decision-path:hover {
