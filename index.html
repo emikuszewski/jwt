@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Authentication Guide | Basic Auth, Bearer Tokens & JWT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff006e;
+            --neon-purple: #8b5cf6;
+            --neon-green: #00ff88;
+            --dark-bg: #0a0e27;
+            --darker: #050816;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(0, 243, 255, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 110, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 4rem 0 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .alert-banner {
+            background: rgba(255, 0, 110, 0.1);
+            border: 2px solid var(--neon-pink);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 3rem auto;
+            max-width: 900px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.2);
+        }
+
+        .alert-banner::before {
+            content: '⚠️';
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        main {
+            display: grid;
+            gap: 2rem;
+            padding-bottom: 4rem;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem;
+            color: var(--neon-cyan);
+        }
+
+        h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--neon-purple);
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .info-box {
+            background: rgba(0, 243, 255, 0.05);
+            border-left: 4px solid var(--neon-cyan);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .danger-box {
+            background: rgba(255, 0, 110, 0.05);
+            border-left: 4px solid var(--neon-pink);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .success-box {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 4px solid var(--neon-green);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .warning-box {
+            background: rgba(139, 92, 246, 0.05);
+            border-left: 4px solid var(--neon-purple);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .code-block {
+            background: var(--darker);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .card-cyan {
+            border-top: 3px solid var(--neon-cyan);
+        }
+
+        .card-pink {
+            border-top: 3px solid var(--neon-pink);
+        }
+
+        .card-purple {
+            border-top: 3px solid var(--neon-purple);
+        }
+
+        .card-green {
+            border-top: 3px solid var(--neon-green);
+        }
+
+        .feature-grid {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .feature-grid h3 {
+            margin-top: 0;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            padding: 0.5rem 0 0.5rem 1.75rem;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        ul li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--neon-cyan);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .mistake-list li::before {
+            content: '✕';
+            color: var(--neon-pink);
+        }
+
+        .check-list li::before {
+            content: '✓';
+            color: var(--neon-green);
+        }
+
+        ol {
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        ol li {
+            margin: 0.5rem 0;
+        }
+
+        .analogy {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--neon-purple);
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin: 1.25rem 0;
+            font-style: italic;
+            position: relative;
+            padding-left: 3.5rem;
+        }
+
+        .analogy::before {
+            content: '💡';
+            position: absolute;
+            left: 1.25rem;
+            top: 1.25rem;
+            font-size: 1.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-cyan);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .emphasis {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 4rem;
+        }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: var(--darker);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-weight: bold;
+            font-size: 1.25rem;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-4px);
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .section-card {
+                padding: 2rem;
+            }
+
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .decision-path {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-radius: 12px;
+            border-left: 3px solid var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .decision-path:hover {
+            border-left-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .decision-path h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+
+        .decision-path p {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="glow-text">API Authentication Guide</h1>
+            <p class="subtitle">Master Basic Auth, Bearer Tokens, and JWT — Learn what works and avoid costly security mistakes</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="alert-banner">
+            Most developers authenticate their APIs wrong. Using Basic Auth over HTTP or storing JWTs in localStorage puts user data at risk.
+        </div>
+
+        <main>
+            <div class="section-card">
+                <h2>Introduction</h2>
+                <p>When building an API, front ends need to authenticate users using one of three options: <strong>Basic Auth</strong>, <strong>Bearer Tokens</strong>, or <strong>JWTs</strong>. Pick the wrong one and you'll either overengineer a simple app or create a security nightmare in production.</p>
+
+                <div class="grid-3" style="margin-top: 2rem;">
+                    <div class="card card-cyan">
+                        <h4>Basic Auth</h4>
+                        <p>The simplest approach</p>
+                    </div>
+                    <div class="card card-purple">
+                        <h4>Bearer Tokens</h4>
+                        <p>Most common transport</p>
+                    </div>
+                    <div class="card card-pink">
+                        <h4>JWTs</h4>
+                        <p>Self-contained tokens</p>
+                    </div>
+                </div>
+
+                <div class="feature-grid">
+                    <h3>💡 Key Concepts</h3>
+                    <div class="grid-2">
+                        <ul class="check-list">
+                            <li>Why Base64 encoding ≠ encryption</li>
+                            <li>Bearer scheme vs token types</li>
+                            <li>How JWT signatures prevent tampering</li>
+                            <li>localStorage vs httpOnly cookies</li>
+                        </ul>
+                        <ul class="check-list">
+                            <li>When JWTs are essential</li>
+                            <li>HS256 vs RS256 algorithms</li>
+                            <li>Why HTTPS is non-negotiable</li>
+                            <li>Token revocation strategies</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>🎯 Who This Is For</h4>
+                    <div class="grid-2">
+                        <ul>
+                            <li>Backend developers building REST APIs</li>
+                            <li>Frontend devs implementing auth</li>
+                            <li>Full-stack engineers</li>
+                        </ul>
+                        <ul>
+                            <li>DevOps engineers securing production</li>
+                            <li>Anyone tired of copy-pasting auth code</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>The Problem: HTTP is Stateless</h2>
+                
+                <div class="analogy">
+                    <strong>Think of a drive-thru window:</strong> You order, they hand you food, and the window closes. Next car pulls up—they have no idea you just ordered. Clean slate every time.
+                </div>
+                
+                <p>HTTP works the same way by design. It keeps things simple and fast, but you must <strong>prove who you are with every request</strong>.</p>
+
+                <p>Authentication asks "Who are you?" (not authorization: "What can you do?").</p>
+            </div>
+
+            <div class="section-card">
+                <h2>Basic Authentication</h2>
+                <span class="tag">RFC 7617</span>
+                
+                <p>Basic authentication is the simplest HTTP authentication scheme:</p>
+                
+                <div class="info-box">
+                    <ol>
+                        <li>Take username and password</li>
+                        <li>Join them with a colon</li>
+                        <li>Encode in Base64</li>
+                        <li>Send in authorization header with every request</li>
+                    </ol>
+                </div>
+
+                <div class="code-block">Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=</div>
+
+                <div class="danger-box">
+                    <h3>⚠️ Base64 is NOT Encryption</h3>
+                    <p><strong>Why Base64?</strong> HTTP headers only accept certain characters. Base64 converts username:password into safe characters—it's for compatibility, not security. Anyone can decode it instantly.</p>
+                    <p class="emphasis">Over plain HTTP, you're broadcasting passwords in unencrypted form.</p>
+                </div>
+
+                <div class="warning-box">
+                    <p><strong class="emphasis">Basic Auth over HTTPS is fine</strong>—TLS encryption protects credentials. Over HTTP, it's completely exposed.</p>
+                </div>
+
+                <h3>The Issue</h3>
+                <p>Credentials are sent with <strong>every request</strong>—many opportunities for interception or logging. If credentials appear in server logs, cache layers, or proxy logs, that's a security incident waiting to happen.</p>
+
+                <div class="success-box">
+                    <h4>When to Use Basic Auth</h4>
+                    <p><strong>Best for:</strong> Internal tools, local development, simple machine-to-machine communication where the network is controlled.</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Bearer Token Scheme</h2>
+                
+                <div class="warning-box">
+                    <h3>Common Misconception</h3>
+                    <div class="analogy">
+                        <strong>Think of "Bearer" like an envelope.</strong> The word "Bearer" tells the post office how to deliver it: "Give this to whoever holds it." The envelope doesn't tell you what's inside—that's the token.
+                    </div>
+                    <p class="emphasis">Bearer is the delivery method. The token is the content.</p>
+                </div>
+
+                <h3>How Bearer Tokens Work (Opaque Tokens)</h3>
+                
+                <div class="split-layout">
+                    <div class="info-box">
+                        <h4>Getting a Token</h4>
+                        <p>Client sends credentials once → Server validates → Generates random token → Stores in database → Sends back to client</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>Using the Token</h4>
+                        <p>Client includes token in authorization header → Server checks database → Grants or denies access</p>
+                    </div>
+                </div>
+
+                <div class="code-block">Authorization: Bearer a3b5c7d9e1f2g4h6i8j0k2l4m6n8p0q2</div>
+
+                <h3>What is an Opaque Token?</h3>
+                <p>Called <strong>opaque</strong> because the token contains no information—just a random identifier. The server must query the database every time to verify who owns it and if it's valid.</p>
+
+                <div class="grid-2">
+                    <div class="card card-green">
+                        <h4>✓ Advantages</h4>
+                        <ul class="check-list">
+                            <li>Passwords not sent repeatedly</li>
+                            <li>Revoke tokens without changing passwords</li>
+                            <li>Set expiration times</li>
+                        </ul>
+                    </div>
+                    <div class="card card-pink">
+                        <h4>⚠ Trade-offs</h4>
+                        <ul class="mistake-list">
+                            <li>Database lookup every request</li>
+                            <li>Performance consideration for high-traffic</li>
+                            <li>Multiple servers need shared storage</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <p class="emphasis">The Question: What if the token itself could identify the user without hitting the database?</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>JWT Deep Dive</h2>
+                <p><strong>JSON Web Tokens (JWTs)</strong> are self-contained tokens with data inside them.</p>
+
+                <h3>JWT Structure: Three Parts</h3>
+                
+                <div class="grid-3">
+                    <div class="card card-cyan">
+                        <h4>1. Header</h4>
+                        <p>Algorithm used to sign the token (e.g., HMAC SHA-256) and token type (JWT).</p>
+                        <p class="emphasis">Determines signature verification method.</p>
+                    </div>
+                    <div class="card card-purple">
+                        <h4>2. Payload</h4>
+                        <p><strong>Claims:</strong> User information</p>
+                        <ul style="margin-top: 0.5rem;">
+                            <li><strong>sub</strong> — Subject (user ID)</li>
+                            <li><strong>exp</strong> — Expiration</li>
+                            <li><strong>iat</strong> — Issued at</li>
+                            <li>Custom claims</li>
+                        </ul>
+                    </div>
+                    <div class="card card-pink">
+                        <h4>3. Signature</h4>
+                        <p>Cryptographic hash of header + payload using a secret key.</p>
+                        <p class="emphasis">Makes JWT secure.</p>
+                    </div>
+                </div>
+
+                <div class="code-block">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</div>
+
+                <div class="danger-box">
+                    <h3>🚨 Payload is NOT Encrypted</h3>
+                    <p>The payload is only Base64 encoded. Anyone can decode and read it—visit jwt.io and see for yourself.</p>
+                    
+                    <div class="warning-box" style="margin-top: 1rem;">
+                        <p><strong class="emphasis">Never put in a JWT:</strong> Passwords, social security numbers, credit card numbers, or any sensitive data.</p>
+                        <p><strong>Only include:</strong> Data you're okay with the client seeing (user ID, roles, etc.).</p>
+                    </div>
+                </div>
+
+                <h3>How Signatures Make JWTs Secure</h3>
+                
+                <div class="success-box">
+                    <p><strong>If anyone changes even one character in the payload, the signature won't match and the server will reject it.</strong> JWTs are tamper-proof—claims can't be changed without invalidating the signature.</p>
+                </div>
+
+                <div class="warning-box">
+                    <p class="emphasis">Remember: Tamper-proof ≠ private. The signature prevents changes, but anyone can read the payload.</p>
+                </div>
+
+                <h3>The Game-Changing Advantage</h3>
+                <div class="info-box">
+                    <p><strong class="emphasis">No database lookup required.</strong> The server verifies the signature mathematically—5-10x faster than database queries.</p>
+                    <p>Servers scale horizontally without shared session storage—each server verifies JWTs independently.</p>
+                </div>
+
+                <h3>The Trade-off: Revocation</h3>
+                
+                <div class="danger-box">
+                    <p><strong>JWTs are stateless</strong>—the server doesn't track them. Revocation solutions:</p>
+                    <ul style="margin-top: 0.75rem;">
+                        <li>Token blacklist (defeats stateless advantage)</li>
+                        <li>Short-lived access tokens with refresh token rotation</li>
+                        <li>Token versioning with user state checks</li>
+                    </ul>
+                    <p style="margin-top: 0.75rem;" class="emphasis">JWT expiration times are critical—they limit exposure windows.</p>
+                </div>
+
+                <h3>The Refresh Token Pattern</h3>
+                <div class="info-box">
+                    <p><strong>Best practice:</strong> Short-lived access tokens (15 minutes) + longer-lived refresh tokens.</p>
+                    <p>When access tokens expire, clients use refresh tokens to get new ones. Refresh tokens are stored in the database and can be revoked—combining JWT performance with revocation control.</p>
+                </div>
+
+                <h3>Signing Algorithms</h3>
+                
+                <div class="grid-2">
+                    <div class="card card-cyan">
+                        <h4>HS256 (Symmetric)</h4>
+                        <div class="analogy">Like a house key—same key locks and unlocks.</div>
+                        <p>Fast, simple, secure when you control everything.</p>
+                        <p class="emphasis">Use for: Simpler setups with centralized control</p>
+                    </div>
+                    <div class="card card-purple">
+                        <h4>RS256 (Asymmetric)</h4>
+                        <div class="analogy">Like a mailbox—private key puts mail in (sign), public key checks contents (verify).</div>
+                        <p class="emphasis">Use for: Microservices where multiple services verify tokens from central auth</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Security Best Practices</h2>
+
+                <div class="danger-box">
+                    <h3>⚠️ Common Mistakes</h3>
+                    <ul class="mistake-list">
+                        <li>Sending Basic Auth over HTTP (password in plain text)</li>
+                        <li>Storing sensitive data in JWT payloads (anyone can read it)</li>
+                        <li>Using localStorage for tokens (XSS vulnerability)</li>
+                        <li>Creating JWTs that never expire (security nightmare)</li>
+                        <li>Confusing Bearer scheme with Bearer tokens</li>
+                        <li>Rolling your own crypto</li>
+                    </ul>
+                </div>
+
+                <h3>1. Always Use HTTPS</h3>
+                <div class="warning-box">
+                    <p class="emphasis">No authentication method is secure over plain HTTP. HTTPS encrypts the entire request, including headers. No exceptions.</p>
+                </div>
+
+                <h3>2. Token Storage Matters</h3>
+                <div class="grid-2">
+                    <div class="card card-pink">
+                        <h4>localStorage</h4>
+                        <p><strong>Vulnerable to XSS</strong> (cross-site scripting). Malicious JavaScript can read localStorage and steal tokens.</p>
+                    </div>
+                    <div class="card card-green">
+                        <h4>httpOnly Cookies</h4>
+                        <p>Can't be accessed by JavaScript—protects against XSS. But vulnerable to CSRF (cross-site request forgery).</p>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h4>✓ The Solution</h4>
+                    <p>Use <strong>httpOnly cookies</strong> with <strong>SameSite</strong> attribute set to <strong>strict</strong> or <strong>lax</strong>.</p>
+                </div>
+
+                <h3>3. Set Appropriate Expiration Times</h3>
+                <p>Short-lived access tokens, longer refresh tokens. Don't create year-long JWTs—that's a year-long security window if stolen.</p>
+
+                <h3>4. Never Roll Your Own Crypto</h3>
+                <div class="warning-box">
+                    <p>Use established libraries: <strong>jsonwebtoken</strong> (Node.js), <strong>PyJWT</strong> (Python), or similar. These are tested and audited—custom implementations aren't.</p>
+                </div>
+
+                <h3>5. JWT Algorithm Verification</h3>
+                <div class="danger-box">
+                    <p><strong>Classic vulnerability:</strong> Attackers change algorithm from RS256 to "none" or HS256 to bypass signature verification.</p>
+                    <p>While modern JWT libraries protect against this by default, <strong class="emphasis">explicitly specify the expected algorithm</strong> as defense-in-depth. Always whitelist accepted algorithms.</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Decision Framework</h2>
+                
+                <div class="decision-path">
+                    <h3>Internal Tools</h3>
+                    <p><strong>Use Basic Auth with HTTPS</strong></p>
+                    <p>Simple, effective, no overengineering.</p>
+                </div>
+
+                <div class="decision-path">
+                    <h3>Public-Facing APIs</h3>
+                    <p><strong>Skip Basic Auth</strong></p>
+                </div>
+
+                <div class="decision-path">
+                    <h3>Horizontal Scaling (Multiple Servers)</h3>
+                    <p><strong>Use JWTs</strong></p>
+                    <p>Stateless, fast, no shared session storage needed.</p>
+                </div>
+
+                <div class="decision-path">
+                    <h3>Simpler Applications</h3>
+                    <p><strong>Use opaque bearer tokens with server-side sessions</strong></p>
+                    <p>Easier to implement and revoke. Database lookups often aren't a performance problem.</p>
+                </div>
+
+                <div class="info-box" style="margin-top: 2rem;">
+                    <p class="emphasis">Match auth system complexity to actual requirements. Don't use JWTs just because they're trendy.</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Recap</h2>
+                
+                <div class="grid-2">
+                    <div class="card card-cyan">
+                        <h4>Basic Auth</h4>
+                        <p>Simple but requires HTTPS and sends credentials repeatedly.</p>
+                    </div>
+                    <div class="card card-purple">
+                        <h4>Bearer Scheme</h4>
+                        <p>Transport mechanism—tokens can be opaque or JWTs.</p>
+                    </div>
+                    <div class="card card-green">
+                        <h4>Opaque Tokens</h4>
+                        <p>Require database lookups but easy to revoke.</p>
+                    </div>
+                    <div class="card card-pink">
+                        <h4>JWTs</h4>
+                        <p>Self-contained, fast, stateless—perfect for scaling. Harder to revoke without extra infrastructure.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Made by the SE Team for Walkthrough Purposes Only</p>
+        </div>
+    </footer>
+
+    <div class="scroll-top" id="scrollTop">↑</div>
+
+    <script>
+        const scrollTop = document.getElementById('scrollTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+        
+        scrollTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
